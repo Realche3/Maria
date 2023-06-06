@@ -1,0 +1,200 @@
+import React, { useState } from 'react';
+import { View, TextInput, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+import { Audio } from 'expo-av';
+
+const MariaApp = () => {
+  const [userInput, setUserInput] = useState('');
+  const [response, setResponse] = useState('');
+  const [recording, setRecording] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
+
+  const handleVoiceInput = async () => {
+    try {
+      const { status } = await Audio.getPermissionsAsync();
+
+      if (status !== 'granted') {
+        console.log('Audio permissions not granted');
+        return;
+      }
+
+      setIsRecording(true);
+      const recordingOptions = {
+        android: {
+          extension: '.m4a',
+          outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_MPEG_4,
+          audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_AAC,
+          sampleRate: 44100,
+          numberOfChannels: 1,
+          bitRate: 128000,
+        },
+        ios: {
+          extension: '.m4a',
+          outputFormat: Audio.RECORDING_OPTION_IOS_OUTPUT_FORMAT_MPEG4AAC,
+          audioQuality: Audio.RECORDING_OPTION_IOS_AUDIO_QUALITY_HIGH,
+          sampleRate: 44100,
+          numberOfChannels: 1,
+          bitRate: 128000,
+          linearPCMBitDepth: 16,
+          linearPCMIsBigEndian: false,
+          linearPCMIsFloat: false,
+        },
+      };
+
+      const recording = new Audio.Recording();
+      await recording.prepareToRecordAsync(recordingOptions);
+      await recording.startAsync();
+      setRecording(recording);
+    } catch (error) {
+      console.error('Failed to start audio recording:', error);
+    }
+  };
+
+  const stopRecording = async () => {
+    if (!recording) return;
+
+    try {
+      setIsRecording(false);
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      setUserInput(uri);
+      setRecording(null);
+    } catch (error) {
+      console.error('Failed to stop audio recording:', error);
+    }
+  };
+
+  const sendRequest = async () => {
+    try {
+      const response = await axios.post(
+        'https://api.openai.com/v1/chat/completions',
+        {
+          model: 'gpt-3.5-turbo',
+          messages: [
+            { role: 'system', content: 'You are Maria, a helpful assistant.' },
+            { role: 'user', content: userInput },
+          ],
+        },
+        {
+          headers: {
+            Authorization: 'Bearer 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',
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      const chatResponse = response.data.choices[0].message.content;
+      setResponse(chatResponse);
+    } catch (error) {
+      console.error('Failed to send request to ChatGPT API:', error);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Ionicons name="ios-woman" size={40} color="#fff" />
+        <Text style={styles.title}>Maria</Text>
+        <Ionicons name="ios-woman" size={40} color="#fff" />
+      </View>
+      <ScrollView contentContainerStyle={styles.contentContainer}>
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            onChangeText={(text) => setUserInput(text)}
+            value={userInput}
+            placeholder="Type your request..."
+            placeholderTextColor="#999"
+            multiline={true}
+          />
+          <View style={styles.buttonContainer}>
+            {isRecording ? (
+              <TouchableOpacity style={styles.recordingButton} onPress={stopRecording}>
+                <Text style={styles.buttonText}>Stop Recording</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity style={styles.recordingButton} onPress={handleVoiceInput}>
+                <Text style={styles.buttonText}>Start Recording</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={styles.sendButton} onPress={sendRequest}>
+              <Text style={styles.buttonText}>Send</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+        <View style={styles.responseContainer}>
+          <Text style={styles.response}>{response}</Text>
+        </View>
+      </ScrollView>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    backgroundColor: '#000',
+  },
+  title: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginLeft: 16,
+  },
+  contentContainer: {
+    flexGrow: 1,
+    padding: 16,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  input: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    fontSize: 16,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  recordingButton: {
+    backgroundColor: '#3498db',
+    borderRadius: 8,
+    padding: 12,
+    marginRight: 10,
+    flex: 1,
+  },
+  sendButton: {
+    backgroundColor: '#3498db',
+    borderRadius: 8,
+    padding: 12,
+    flex: 1,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  responseContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 12,
+  },
+  response: {
+    fontSize: 16,
+  },
+});
+
+export default MariaApp;

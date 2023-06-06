@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "Maria",
+    "slug": "maria",
+    "version": "0.0.1",
+    "sdkVersion": "48.0.0",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "android": {
+      "package": "com.realche3.maria"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIAppFonts": [
+          {
+            "resourceBundle": {
+              "type": "yarn",
+              "packagerOptions": {
+                "yarn": {
+                  "dependencies": {
+                    "@expo/vector-icons": "^12.0.0"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      } 
+    }
+}
+}

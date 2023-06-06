@@ -1,0 +1,27 @@
+{
+  "name": "Maria",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^13.0.0",
+    "axios": "^1.4.0",
+    "expo": "^48.0.19",
+    "expo-av": "^13.2.1",
+    "expo-modules-core": "~1.2.7",
+    "expo-permissions": "~14.1.1",
+    "expo-splash-screen": "~0.18.2",
+    "expo-status-bar": "~1.4.4",
+    "react": "18.2.0",
+    "react-native": "0.71.8",
+    "react-native-gesture-handler": "^2.10.2",
+    "react-native-keyboard-aware-scroll-view": "^0.9.5"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0"
+  }
+}
